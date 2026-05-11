@@ -1,16 +1,13 @@
 # Codex Plugin Unlocker
 
-Codex Plugin Unlocker 是一个面向 Windows 版 Codex Desktop 的最小启动器。启动器通过 Chromium DevTools Protocol 启动 Codex，并注入一段小型渲染进程脚本，使 API Key 模式下的插件界面可用。
-
-本项目是第三方本地工具，不是 OpenAI 官方发布版本。
+Codex Plugin Unlocker 是一个面向 Windows 版 Codex Desktop 的轻量启动器。启动器通过 Chromium DevTools Protocol 打开 Codex，并在渲染进程中注入插件界面补丁，使 API Key 模式下的插件入口与安装按钮保持可用。
 
 ## 功能
 
-- 解锁 API Key 模式下的 Codex Desktop 插件侧边栏入口。
-- 启用因 `App unavailable` / 应用不可用前端检查而禁用的插件安装按钮。
-- 保持侧边栏原始名称 `插件` / `Plugins`，不追加额外标记。
-- 不包含会话删除、会话移动、Markdown 导出、watcher 自动接管、Codex 数据库写入。
-- Codex 已经以普通方式运行且没有调试端口时，启动器直接退出，不杀 Codex 进程。
+- 启用 API Key 模式下的 Codex Desktop 插件侧边栏入口。
+- 启用因 `App unavailable` / 应用不可用前端状态而禁用的插件安装按钮。
+- 保留 Codex 原生侧边栏文案与交互样式。
+- 普通 Codex 窗口已经运行且没有调试端口时，启动器会退出并提示重新通过本工具启动。
 
 ## 环境要求
 
@@ -27,7 +24,7 @@ Codex Plugin Unlocker 是一个面向 Windows 版 Codex Desktop 的最小启动�
 .\scripts\install.ps1
 ```
 
-安装脚本会创建项目本地 `.venv`、安装包依赖、运行测试、检查注入脚本语法，并创建桌面快捷方式：
+安装脚本会创建项目本地 `.venv`、安装依赖、运行测试、检查注入脚本语法，并创建桌面快捷方式：
 
 ```text
 Codex Plugin Unlocker.lnk
@@ -39,7 +36,7 @@ Codex Plugin Unlocker.lnk
 2. 通过 `Codex Plugin Unlocker.lnk` 启动 Codex。
 3. 从 Codex 侧边栏进入插件页面。
 
-Codex 已经通过调试端口 `9229` 运行时，启动器会直接注入到该窗口。Codex 已经运行但没有调试端口时，启动器会退出并提示先关闭 Codex。
+Codex 已经通过调试端口 `9229` 运行时，启动器会直接注入到该窗口。Codex 已经运行但没有调试端口时，启动器不会接管现有进程。
 
 ## 手动命令
 
@@ -66,9 +63,11 @@ codex-plugin-unlocker launch
 %USERPROFILE%\.codex-plugin-unlocker\launcher.log
 ```
 
-## 安全说明
+## 设计边界
 
-该工具通过 Chromium DevTools Protocol 向本地 Codex Desktop 渲染进程注入 JavaScript。注入脚本只修改前端状态，不修补 Codex 安装文件，不注册 watcher，不添加开机启动项，不修改 `state_5.sqlite`，不删除本地对话数据。
+该工具只处理 Codex Desktop 的插件界面可用性。实现方式是向本地 Codex Desktop 渲染进程注入一段前端补丁脚本，补丁脚本只修改页面运行时状态。
+
+工具不会修补 Codex 安装文件，不注册常驻进程，不添加开机启动项，不修改 `state_5.sqlite`，不删除本地对话数据。
 
 解锁逻辑依赖 Codex Desktop 的前端实现细节。Codex Desktop 更新后，相关页面结构变化可能导致工具失效。
 
