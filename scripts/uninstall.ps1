@@ -17,4 +17,4 @@ if (Test-Path -LiteralPath $Python) {
     }
 }
 
-Write-Host "Codex Plugin Unlocker shortcut and uninstall entry removed."
+Write-Host "Codex Plugin Unlocker 桌面快捷方式和卸载项已移除。"
