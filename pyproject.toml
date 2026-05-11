@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-plugin-unlocker"
+version = "0.1.0"
+description = "Minimal Codex Desktop plugin unlock launcher"
+requires-python = ">=3.11"
+dependencies = [
+  "requests>=2.31",
+  "websocket-client>=1.7",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[project.scripts]
+codex-plugin-unlocker = "codex_plugin_unlocker.cli:main"
+
+[tool.setuptools]
+packages = ["codex_plugin_unlocker"]
+
+[tool.setuptools.package-data]
+codex_plugin_unlocker = ["inject/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
