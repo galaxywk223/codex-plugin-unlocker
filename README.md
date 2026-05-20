@@ -7,6 +7,7 @@ Codex Plugin Unlocker 是一个面向 Windows 版 Codex Desktop 的轻量启动�
 - 启用 API Key 模式下的 Codex Desktop 插件侧边栏入口。
 - 启用因 `App unavailable` / 应用不可用前端状态而禁用的插件安装按钮。
 - 保留 Codex 原生侧边栏文案与交互样式。
+- 启动 Codex 后持续等待可注入页面，避免 Codex 首次启动较慢时需要再次双击。
 - 普通 Codex 窗口已经运行且没有调试端口时，启动器会退出并提示重新通过本工具启动。
 
 ## 环境要求
@@ -34,9 +35,9 @@ Codex Plugin Unlocker.lnk
 
 1. 关闭普通方式启动的 Codex Desktop 窗口。
 2. 通过 `Codex Plugin Unlocker.lnk` 启动 Codex。
-3. 从 Codex 侧边栏进入插件页面。
+3. 等待 Codex 主界面加载完成后，从侧边栏进入插件页面。
 
-Codex 已经通过调试端口 `9229` 运行时，启动器会直接注入到该窗口。Codex 已经运行但没有调试端口时，启动器不会接管现有进程。
+Codex 已经通过调试端口 `9229` 运行时，启动器会等待可注入页面并注入到该窗口。Codex 已经运行但没有调试端口时，启动器不会接管现有进程。
 
 ## 手动命令
 

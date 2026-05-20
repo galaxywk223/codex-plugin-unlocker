@@ -20,7 +20,7 @@ def test_existing_codex_without_debug_port_is_not_killed(monkeypatch):
 def test_existing_debuggable_codex_gets_injected(monkeypatch, tmp_path):
     calls = []
     monkeypatch.setattr(launcher, "can_connect", lambda port: True)
-    monkeypatch.setattr(launcher, "inject_file", lambda port, script_path: calls.append((port, script_path)))
+    monkeypatch.setattr(launcher, "wait_for_injection", lambda port, script_path: calls.append((port, script_path)))
 
     assert launcher.launch_and_inject(None, 9229) == 0
     assert calls
@@ -37,7 +37,25 @@ def test_launch_path_resolves_and_injects(monkeypatch, tmp_path):
     monkeypatch.setattr(launcher, "find_latest_codex_app_dir", lambda: app)
     monkeypatch.setattr(launcher, "launch_codex", lambda app_dir, debug_port: calls.append(("launch", app_dir, debug_port)))
     monkeypatch.setattr(launcher, "wait_for_debug_port", lambda port: calls.append(("wait", port)))
-    monkeypatch.setattr(launcher, "inject_file", lambda port, script_path: calls.append(("inject", port, Path(script_path).name)))
+    monkeypatch.setattr(launcher, "wait_for_injection", lambda port, script_path: calls.append(("inject", port, Path(script_path).name)))
 
     assert launcher.launch_and_inject(None, 9229) == 0
     assert calls == [("launch", app, 9229), ("wait", 9229), ("inject", 9229, "plugin-unlock.js")]
+
+
+def test_injection_wait_retries_until_page_target_exists(monkeypatch, tmp_path):
+    script = tmp_path / "plugin-unlock.js"
+    script.write_text("", encoding="utf-8")
+    calls = []
+
+    def fake_inject(port, script_path):
+        calls.append((port, script_path))
+        if len(calls) < 3:
+            raise RuntimeError("No injectable Codex page target found")
+        return {"ok": True}
+
+    monkeypatch.setattr(launcher, "inject_file", fake_inject)
+    monkeypatch.setattr(launcher.time, "sleep", lambda seconds: None)
+
+    assert launcher.wait_for_injection(9229, script, timeout=5) == {"ok": True}
+    assert calls == [(9229, script), (9229, script), (9229, script)]

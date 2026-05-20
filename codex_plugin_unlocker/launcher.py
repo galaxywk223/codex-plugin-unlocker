@@ -150,9 +150,9 @@ def launch_codex(app_dir: Path, debug_port: int) -> Any:
 
 
 def wait_for_debug_port(port: int, timeout: float = 20.0) -> None:
-    deadline = time.time() + timeout
+    deadline = time.monotonic() + timeout
     last_error: Exception | None = None
-    while time.time() < deadline:
+    while time.monotonic() < deadline:
         try:
             list_targets(port)
             return
@@ -162,10 +162,22 @@ def wait_for_debug_port(port: int, timeout: float = 20.0) -> None:
     raise RuntimeError(f"Codex debug port did not become ready on {port}: {last_error}")
 
 
+def wait_for_injection(port: int, script_path: Path, timeout: float = 90.0) -> dict[str, object]:
+    deadline = time.monotonic() + timeout
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            return inject_file(port, script_path)
+        except Exception as exc:
+            last_error = exc
+            time.sleep(0.5)
+    raise RuntimeError(f"Codex page did not become injectable on {port} within {timeout:g}s: {last_error}")
+
+
 def launch_and_inject(app_dir: Path | None, debug_port: int, attach_existing: bool = False) -> int:
     script_path = Path(__file__).parent / "inject" / "plugin-unlock.js"
     if can_connect(debug_port):
-        inject_file(debug_port, script_path)
+        wait_for_injection(debug_port, script_path)
         return 0
 
     running_pids = codex_process_ids()
@@ -182,5 +194,5 @@ def launch_and_inject(app_dir: Path | None, debug_port: int, attach_existing: bo
 
     launch_codex(resolved_app_dir, debug_port)
     wait_for_debug_port(debug_port)
-    inject_file(debug_port, script_path)
+    wait_for_injection(debug_port, script_path)
     return 0
