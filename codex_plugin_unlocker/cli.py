@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import sys
 import traceback
 from pathlib import Path
@@ -27,10 +28,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def log_failure(exc: BaseException) -> None:
+def log_failure(exc: BaseException) -> Path:
     log_path = Path.home() / ".codex-plugin-unlocker" / "launcher.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.write_text("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)), encoding="utf-8")
+    return log_path
+
+
+def should_show_failure_dialog() -> bool:
+    return sys.platform == "win32" and Path(sys.executable).name.lower() == "pythonw.exe"
+
+
+def show_failure_dialog(message: str) -> None:
+    if sys.platform != "win32":
+        return
+    ctypes.windll.user32.MessageBoxW(None, message, "Codex Plugin Unlocker", 0x00000010 | 0x00010000)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -46,6 +58,11 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         raise RuntimeError(f"Unknown command: {args.command}")
     except Exception as exc:
-        log_failure(exc)
-        print(f"Codex Plugin Unlocker failed: {exc}", file=sys.stderr)
+        log_path = log_failure(exc)
+        message = f"Codex Plugin Unlocker failed:\n\n{exc}\n\nLog: {log_path}"
+        stderr = getattr(sys, "stderr", None)
+        if stderr is not None:
+            print(f"Codex Plugin Unlocker failed: {exc}", file=stderr)
+        if should_show_failure_dialog():
+            show_failure_dialog(message)
         return 1
