@@ -1,4 +1,4 @@
-# Codex Plugin Unlocker
+# Codex 插件入口修复工具
 
 Codex Plugin Unlocker 是一个面向 Windows 版 Codex Desktop 的轻量启动器。启动器通过 Chromium DevTools Protocol 打开 Codex，并在渲染进程中注入插件界面补丁，使 API Key 模式下的插件入口与安装按钮保持可用。
 
